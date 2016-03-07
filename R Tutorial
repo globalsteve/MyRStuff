@@ -131,24 +131,6 @@ data = merge(data, dataSub, by.x = "group", by.y = 'group')
 
 data$littleGroup = NULL
 
-####### Importing exporting, and SQL
-
-write.csv(data, 'C:/Users/sshablin/Desktop/data.csv')
-data = read.csv('C:/Users/sshablin/Desktop/data.csv')
-library(RODBC)
-
-connection = odbcConnect(dsn = "as06", uid = "sshablin", pwd = winDialogString("Password", ""))
-
-sqlQuery(connection, "select pm_policy from rpteomdta.radpol fetch first 10 rows only")
-sqlSave(connection, data, tablename="#ACTUARY.JUNK", rownames = F)
-
-library(sqldf)
-
-data$group1 = data$group
-
-sqldf('select * from data' )
-data$group1 = NULL
-
 
 ###apply functions
 ## for array
