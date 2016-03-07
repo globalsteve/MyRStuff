@@ -1,0 +1,431 @@
+
+### Make a vector
+x = c(1, 5, 7, 8, 9, 2)
+x[2:5]
+
+### subsetting a vector and logical operators
+
+subset(x, x < 6)
+x < 5
+x<5|x>8
+x != 5
+x == 5
+sum(x<3)
+x[x<5]
+
+
+
+#order data
+x = 10*x
+x
+order(x)
+x = x[order(x, decreasing = TRUE)]
+
+x[2] -> "A"
+
+## create a lag
+f = c(1:100)
+
+c("NA",f[1:length(f)-1])
+f[1:length(f)-1])
+cbind(f, c("NA",f[1:length(f)-1]))
+
+
+## make a matrix
+X = matrix(x, nrow = 2, ncol = 3)
+X[, 2]
+
+#multiply elements
+X[1,1] = 1; X = as.numeric(X)
+X*X
+X^2
+#transpose and cross product
+t(X)
+X%*%t(X)
+
+####### Control statements
+
+### If else
+if (x[1] > 5) y = "Greater than 5!" else  y = "Less than or equal to five, this sucks"
+
+### for loop
+for (i in 1: length(x)) {
+  if (x[i] > 5) y[i] = "Greater than 5!" else  y[i] = "Less than or equal to five, this sucks"
+  
+}
+
+## While
+i = 1
+while (i < length(x)) {i = i + 1; print(x[i])}
+
+## vectorized ifelse
+ifelse(x >5, "Greater than 5!", "Less than or equal to five, this sucks")
+
+
+
+## List
+x <- list(a = 1:10, beta = exp(-3:3), logic = c(TRUE,FALSE,FALSE,TRUE))
+
+x$a
+
+###############Create a function
+
+add_multipy = function(x, y){
+  output = list(add = x +  y, multiply = x*y)
+  output
+}
+
+add_multipy(1, 2)
+
+### Error Handling
+
+tryCatch(1*"string", error = function(x){"Error Suppressed!"})
+tryCatch(sqrt(-1), warning = function(x){"Warning Suppressed!"})
+
+suppressWarnings(sqrt(-1))
+
+
+############# Random Numbers and Sampling
+
+runif(10, 2, 30)
+rnorm(10, 5, 2)
+
+sample(c("A", "B", "C"), 2, replace = FALSE)
+
+
+####### corelated random numebrs data%*%chol(cor)
+
+x1 = rnorm(100, 0, 1)
+x2 = rnorm(100, 0, 1)
+cor_matrix = matrix(c(1, -.9, -.9, 1), nrow = 2, ncol = 2)
+correlatedData = cbind(x1, x2)%*%chol(cor_matrix)
+cor(correlatedData[,1], correlatedData[,2])
+
+x1 = correlatedData[,1]; x2 = correlatedData[,2]
+
+y = 2*x1  + rnorm(100, 0, 2)
+summary(lm(y~  x1 + x2))
+library(car)
+
+linearHypothesis(lm(y~ x1 + x2), c("x1 = x2"))
+
+out = Boot(data.frame(cbind(y, x1, x2)), 100, 'lm(y~ x1 + x2, data)')
+cor(out)
+#####data frames AKA tables
+
+data = data.frame(cbind(x1, x2))
+data$group = sample(c("A", "B", "C"), 100, replace = TRUE)
+
+summary(data)
+
+data$x3 = data$x1 + data$x2
+
+names(data) = c("D", "A", "e")
+
+data = data[, order(names(data))]
+data = data[, c(3, 1, 2)]
+
+dataSub = data.frame(cbind(c('A', 'B', 'C'), c('a', 'b', 'c'))); names(dataSub) = c('group', 'littleGroup')
+
+data = merge(data, dataSub, by.x = "group", by.y = 'group')
+
+data$littleGroup = NULL
+
+####### Importing exporting, and SQL
+
+write.csv(data, 'C:/Users/sshablin/Desktop/data.csv')
+data = read.csv('C:/Users/sshablin/Desktop/data.csv')
+library(RODBC)
+
+connection = odbcConnect(dsn = "as06", uid = "sshablin", pwd = winDialogString("Password", ""))
+
+sqlQuery(connection, "select pm_policy from rpteomdta.radpol fetch first 10 rows only")
+sqlSave(connection, data, tablename="#ACTUARY.JUNK", rownames = F)
+
+library(sqldf)
+
+data$group1 = data$group
+
+sqldf('select * from data' )
+data$group1 = NULL
+
+
+###apply functions
+## for array
+apply(data[80:90, 3:4], 1:2, function(x) {if(x > 0) out = "+" else out = "-"; out})
+## for vector
+sapply(data[,4], function(x) {if(x > 0) out = "+" else out = "-"; out})
+## for grouping
+tapply(data$e, data$group, sum)
+
+### modeling
+x1 = exp((1:100)/100)
+x2 = cos((1:100)/10) 
+y = 4*x1 + 3*x2  + 6 + rnorm(100, 0, 4)
+data = data.frame(cbind(y, x1, x2))
+
+mod = lm(y~ x1 + x2, data = data)
+summary(mod)
+names(mod)
+mod$coefficients
+coef(mod)
+names(summary(mod))
+
+
+plot(mod$residuals)
+cor(mod$residuals, data$x1)
+plot(mod$residuals[order(data$x1)], mod$x1[order(data$x1)], ylab = "residuals", xlab = "x1")
+plot(mod$residuals[order(data$x2)], mod$x2[order(data$x2)], ylab = "residuals", xlab = "x2")
+
+##grouping data
+# function to assign discreet percentiles to continuous data vector
+# X = data vector; n number of buckets or percentiles
+
+quantile(data$y, p = seq(0, 1, .1))
+
+assign_q = function(X, n){
+  p = 1/n
+  q = quantile(X, p = seq(0, 1, p))
+  q = q[2:length(q)]
+  f = function(x) {names(q[x <= q][1])}
+  sapply(X, f)
+  
+}
+data$q = assign_q(data$y, 4)
+
+##make lift curve of mdoeled data
+data$y_quantile = assign_q(data$y, 10)
+groupedActual = tapply(data$y, data$y_quantile, mean)
+groupedPredicted = tapply(predict(mod), data$y_quantile, mean)
+groupedActual = groupedActual [order(groupedActual )]
+groupedPredicted = groupedPredicted [order(groupedPredicted )]
+barplot(rbind(groupedActual, groupedPredicted), beside = TRUE,legend = c("Actual", "Expected"))
+
+## WE ARE HERE!!!!
+####comparing mutiple models
+#execute a string
+eval(parse(text = "1+2"))
+
+data$x3 = rgamma(100, scale = 4, shape = 2)
+data$x4 = rnorm(100, 6, 2)
+data$y = 4*data$x1 + 3*data$x2  + +10*data$x3 + .5*data$x4 + 6 + rnorm(100, 0, 4)
+
+variables = c('x1', 'x2', 'x3', 'x4')
+formula = ' = lm(y ~ x1'
+mod1 = lm(y ~ x1, data)
+
+
+for (i in 2:length(variables)){
+  
+  formula = paste0(formula, '+', variables[i])
+  runModel = paste0('mod', i,  formula, ',data)')
+  eval(parse(text = runModel))
+  runModel = ""
+  
+}
+Coefficients = merge(coef(mod1), coef(mod2), by.x = 'row.names', by.y = 'row.names', all.y = TRUE)
+Coefficients = merge(Coefficients, coef(mod3), by.x = 'Row.names', by.y = 'row.names', all.y = TRUE)
+Coefficients = merge(Coefficients, coef(mod4), by.x = 'Row.names', by.y = 'row.names', all.y = TRUE)
+names(Coefficients) = c("Coefficents", 'mod1', 'mod2', 'mod3', 'mod4')
+
+
+
+
+
+###########decision Tree
+x1 = exp((1:100)/100)
+x2 = cos((1:100)/10) 
+interaction = ifelse(x2>.7, ifelse(x1>1.8, 1, 0), 0)
+
+summary(x2); summary(x1)
+
+data$y = 4*x1 + 3*x2 + ifelse(x2>.75, ifelse(x1>1.7, 4, 0), 0) + rnorm(100, 0, 4)
+data$y = 4*x1 + 3*x2  + rnorm(100, 0, 4)
+
+
+mod1 = lm(y~x1 + x2 + interaction)
+summary(mod1)
+plot(y)
+mod = rpart(y~x1 + x2)
+par(xpd = TRUE)
+plot(mod, compress = TRUE)
+text(mod,pretty=1)
+
+
+
+
+
+### Boot
+
+data$x3 = sample(c("a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a","a","c","c","c","c","c","b"), 100, replace = TRUE)
+xtabs(~data$x3)
+###########Bootstrap code
+Boot = function(data, n, model) {
+  
+  # Function to run model
+  runMod = function(data, model){
+    
+    #execute string with error handling 
+    mod = tryCatch(
+          eval(parse(text = model)),
+          error = function(x){"error"}
+                  )
+    out = suppressWarnings(
+          #if (mod == "error") out = "error" else out = coef(mod)
+          coef(mod)
+        )
+    out
+  }
+  
+  #function to loop through resampled data
+  range = c(1:nrow(data)) #row index of dataframe to sample from
+  Size =  length(range)     
+  dataSample = data
+  print(paste0("Fitting model 1", "....."))
+  output = data.frame(runMod(dataSample, model))
+  for (i in 2:n){
+    print(paste0("Fitting model ", i, "....."))
+    dataSample = data[sample(range, size = Size, replace = TRUE),]
+    mod = runMod(dataSample, model)
+    
+    #If the model ran attach the coefficients
+    suppressWarnings(
+      if (mod != "error")
+        output = data.frame(output, mod[match(row.names(output), names(mod))])
+      )
+   
+  }
+  output = data.frame(t(output)); row.names(output) = NULL
+  output
+}
+
+
+#y = Boot(data, 100, 'lm(y ~ x1 + x2 + x3 + x4, data)')
+y = Boot(data, 100, 'lm(y ~ x1 + x2 + x3, data)')
+y = Boot(data, 100, 'lm(y ~ x1 + x2, data)')
+
+hist(y[,5])
+
+apply(y, 2, function(x) mean(x, na.rm = TRUE))
+coef(lm(y ~ x1 + x2 + x3, data))
+
+#####holdout data
+
+validate = function(model, y, Data, n, cutoff) 
+  {
+  
+  dependant = paste0('data$', y)
+  dependantHout = paste0('dataHout$', y)
+  out = data.frame(t(c(1, 1)))
+  names(out) = c('FittedR2', 'HoldoutR2')
+  for (i in 1:n) 
+    {
+    Data$rnum = runif(nrow(Data))
+    data = Data[Data$rnum > cutoff,]
+    dataHout = Data[Data$rnum <= cutoff,]
+    mod = eval(parse(text = model))
+    fittedR2 = cor(predict(mod), eval(parse(text = dependant)))^2
+    holdoutR2 = cor(predict(mod, newdata = dataHout), eval(parse(text = dependantHout)))^2
+    out[i,] = c(fittedR2, holdoutR2)
+  }
+  out
+}
+
+
+dist = validate('lm(y ~ x1 + x2, data = data)', data, 1000, .25)
+dist2 = validate('lm(y ~ x1*x2, data = data)', data, 1000, .25)
+hist(dist$HoldoutR2); cor(dist$FittedR2, dist$HoldoutR2)
+hist(dist2$HoldoutR2)
+mean(dist$HoldoutR2); mean(dist2$HoldoutR2)
+sum(sample(dist$HoldoutR2, 1000000, replace = 1) > 
+sample(dist2$HoldoutR2, 1000000, replace = 1))/1000000
+
+####### Optimization
+
+### Max liklihood
+x = rgamma(100, shape = 5, scale= 10)
+hist(x)
+
+
+LL = function(param){
+  shape = param[1]
+  scale = param[2]
+  L = dgamma(x, shape = shape, scale = scale)
+  -sum(log(L))
+  
+}
+
+optim(par = c(1, 1), fn = LL)
+
+
+### linear model
+x = rnorm(100, 0, 1)
+y = 5*x + 10 + rnorm(100, 0, 1)
+cost = function(param){
+  
+  a = param[1]
+  b = param[2]
+  cost = (y-(a*x + b))^2 + .000001*(a^2 + b^2)
+  sum(cost)
+}
+
+optim(par = c(1, 1), fn = cost)
+
+y
+X = cbind(x, 1)
+## Normal Equation
+library(MASS)
+ginv(t(X)%*%X)%*%t(X)%*%y
+
+#### Linear model with gamma dist
+x = rnorm(100, 0, 1)
+y_true = exp(5*x + 20)
+y = rgamma(y_true, shape = 10, scale = y_true/10)
+
+cost = function(param){
+  
+  a = param[1]
+  b = param[2]
+  shape = param[3]
+  scale = exp(a*x + b)/shape
+  cost = dgamma(y, shape = shape, scale = scale)
+  -sum(log(cost))
+}
+glm(y~x, family = Gamma(link = "log"))
+optim(par = c(5, 20, 10), fn = cost, )
+
+######################### cluster
+
+center1 = c(1, 2)
+center2 = c(-10,3)
+center3 = c(20,-5)
+center4 = c(9, 15)
+
+centers = rbind(center1, center2, center3, center4)
+
+n = 1000
+true_center = sample(c(1:4), n, replace = TRUE)
+x_coord = rnorm(n,centers[true_center,1], runif(n, 0, 10))
+y_coord = rnorm(n,centers[true_center,2], runif(n, 0, 10))
+clusterData = data.frame(true_center, x_coord, y_coord)
+plot(clusterData$x_coord, clusterData$y_coord, xlab = "x", ylab = "y")
+
+kmeans(clusterData[,2:3], 4)$centers
+kmeans(clusterData[,2:3], 4)$cluster
+plot(clusterData$x_coord, clusterData$y_coord, xlab = "x", ylab = "y", col = kmeans(clusterData[,2:3], 4)$cluster)
+
+
+findCenters = function(data, n) {
+wss <- (nrow(data)-1)*sum(apply(data,2,var))
+for (i in 2:n) wss[i] <- sum(kmeans(data, centers=i, iter.max = 20)$withinss)
+plot(1:n, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of squares", col = "blue", main = "Sum of Squares vs. # of Clusters") 
+}
+
+findCenters(clusterData[,2:3], 10)
+
+
+
+
+
+
+
