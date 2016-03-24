@@ -185,6 +185,13 @@ barplot(rbind(groupedActual, groupedPredicted), beside = TRUE,legend = c("Actual
 
 ## WE ARE HERE!!!!
 ####comparing mutiple models
+
+########## Releveling factors
+d = sample(as.factor(c('A', 'B', "c")), 100, replace = 1)
+levels(d)
+d = relevel(d, ref = "c")
+levels(d)
+
 #execute a string
 eval(parse(text = "1+2"))
 
