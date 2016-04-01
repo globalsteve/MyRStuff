@@ -456,7 +456,13 @@ plot(1:n, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of sq
 
 findCenters(clusterData[,2:3], 10)
 
-
+######Factors to column function
+factorToColumns = function(X) {
+  colNames = levels(as.factor(X))
+  out = data.frame(t(sapply(X, function(x){as.numeric(x == colNames)})), row.names = NULL)
+  names(out) = colNames
+  out
+}
 
 
 
